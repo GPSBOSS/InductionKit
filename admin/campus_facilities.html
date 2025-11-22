@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Campus Facilities</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<script type="module" src="admin.js"></script>
+
+
+<h1>Campus Facilities</h1>
+
+<form id="addForm">
+    <label>Name</label><input id="name">
+    <label>Category</label><input id="category">
+    <label>Description</label><textarea id="description"></textarea>
+    <label>Image Name</label><input id="imageName">
+    <label>Latitude</label><input id="lat" type="number">
+    <label>Longitude</label><input id="lon" type="number">
+    <label>Opening Hours</label><input id="openingHours">
+
+    <button type="submit">Add Facility</button>
+</form>
+
+<h2>Existing Facilities</h2>
+<table id="dataTable"></table>
+
+<script type="module">
+import "./firestore.js";
+
+const colRef = collection(db, "campus_facilities");
+
+document.getElementById("addForm").onsubmit = async (e) => {
+    e.preventDefault();
+
+    await addDoc(colRef, {
+        name: name.value,
+        category: category.value,
+        description: description.value,
+        imageName: imageName.value,
+        lat: Number(lat.value),
+        lon: Number(lon.value),
+        openingHours: openingHours.value
+    });
+
+    location.reload();
+};
+
+async function loadData() {
+    const snap = await getDocs(colRef);
+    let html = "<tr><th>Name</th><th>Category</th><th>Actions</th></tr>";
+
+    snap.forEach(docu => {
+        html += `
+        <tr>
+            <td>${docu.data().name}</td>
+            <td>${docu.data().category}</td>
+            <td>
+                <button onclick="del('${docu.id}')">Delete</button>
+            </td>
+        </tr>`;
+    });
+
+    document.getElementById("dataTable").innerHTML = html;
+}
+
+window.del = async (id) => {
+    await deleteDoc(doc(db, "campus_facilities", id));
+    location.reload();
+};
+
+loadData();
+</script>
+
+</body>
+</html>

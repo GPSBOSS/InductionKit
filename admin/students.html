@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Students</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<script type="module" src="admin.js"></script>
+
+<h1>Students</h1>
+
+<form id="addForm">
+    <label>Student ID</label><input id="studentId">
+    <label>Firstname</label><input id="firstname">
+    <label>Surname</label><input id="surname">
+    <label>Other Names</label><input id="otherNames">
+    <label>Email</label><input id="email">
+    <label>Course</label><input id="course">
+    <label>Faculty Name</label><input id="facultyName">
+    <label>UID</label><input id="uid">
+
+    <button type="submit">Add Student</button>
+</form>
+
+<h2>Existing Students</h2>
+<table id="dataTable"></table>
+
+<script type="module">
+import "./firestore.js";
+
+const colRef = collection(db, "students");
+
+document.getElementById("addForm").onsubmit = async (e) => {
+    e.preventDefault();
+
+    await addDoc(colRef, {
+        studentId: studentId.value,
+        firstname: firstname.value,
+        surname: surname.value,
+        otherNames: otherNames.value,
+        email: email.value,
+        course: course.value,
+        facultyName: facultyName.value,
+        uid: uid.value,
+        createdAt: new Date(), 
+        lastLoginAt: new Date()
+    });
+
+    location.reload();
+};
+
+async function loadData() {
+    const snap = await getDocs(colRef);
+    let html = "<tr><th>ID</th><th>Name</th><th>Email</th><th>Actions</th></tr>";
+
+    snap.forEach(docu => {
+        const d = docu.data();
+        html += `
+        <tr>
+            <td>${d.studentId}</td>
+            <td>${d.firstname} ${d.surname}</td>
+            <td>${d.email}</td>
+            <td><button onclick="del('${docu.id}')">Delete</button></td>
+        </tr>`;
+    });
+
+    document.getElementById("dataTable").innerHTML = html;
+}
+
+window.del = async (id) => {
+    await deleteDoc(doc(db, "students", id));
+    location.reload();
+};
+
+loadData();
+</script>
+
+</body>
+</html>

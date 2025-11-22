@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Create Admin</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- Protect this page -->
+<script type="module" src="admin.js"></script>
+
+<h1>Create Admin</h1>
+
+<form id="adminForm">
+    <label>Email</label>
+    <input id="email" type="email" required>
+
+    <label>Password</label>
+    <input id="password" type="password" required>
+
+    <label>Name</label>
+    <input id="name" required>
+
+    <label>Role</label>
+    <input id="role" required value="admin">
+
+    <button type="submit">Create Admin</button>
+</form>
+
+<p id="msg"></p>
+
+<!-- Admin creation logic -->
+<script type="module">
+import "./firestore.js";
+import { setDoc, doc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+
+document.addEventListener("DOMContentLoaded", () => {
+
+    const form = document.getElementById("adminForm");
+    const emailInput = document.getElementById("email");
+    const passwordInput = document.getElementById("password");
+    const nameInput = document.getElementById("name");
+    const roleInput = document.getElementById("role");
+    const msg = document.getElementById("msg");
+
+    form.onsubmit = async (e) => {
+        e.preventDefault();
+
+        const pw = passwordInput.value;
+
+        // Password validation: 1 uppercase, 1 underscore, 1 symbol, 8+ chars
+        const strongPw = /^(?=.*[A-Z])(?=.*_)(?=.*[^A-Za-z0-9_]).{8,}$/;
+
+        if (!strongPw.test(pw)) {
+            msg.style.color = "red";
+            msg.textContent =
+                "Password must contain: 1 uppercase letter, 1 underscore (_), 1 special symbol, and be at least 8 characters.";
+            return;
+        }
+
+        try {
+            // Create Firebase Auth admin
+            const cred = await createUserWithEmailAndPassword(auth, emailInput.value, pw);
+            const uid = cred.user.uid;
+
+            // Create Firestore admin record
+            await setDoc(doc(db, "admins", uid), {
+                name: nameInput.value,
+                role: roleInput.value,
+                createdAt: new Date()
+            });
+
+            msg.style.color = "green";
+            msg.textContent = "Admin created successfully!";
+            form.reset();
+
+        } catch (err) {
+            msg.style.color = "red";
+            msg.textContent = err.message;
+        }
+    };
+
+});
+</script>
+
+</body>
+</html>

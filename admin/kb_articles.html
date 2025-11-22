@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>KB Articles</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<script type="module" src="admin.js"></script>
+
+<h1>KB Articles</h1>
+
+<form id="addForm">
+    <label>Title</label><input id="title">
+    <label>Content</label><textarea id="content"></textarea>
+    <label>Keywords (comma, max 10)</label><input id="keywords">
+
+    <button type="submit">Add Article</button>
+</form>
+
+<h2>Existing Articles</h2>
+<table id="dataTable"></table>
+
+<script type="module">
+import "./firestore.js";
+
+const colRef = collection(db, "kb_articles");
+
+document.getElementById("addForm").onsubmit = async (e) => {
+    e.preventDefault();
+
+    let keys = keywords.value.split(",").map(x => x.trim());
+    if (keys.length > 10) keys = keys.slice(0, 10);
+
+    await addDoc(colRef, {
+        title: title.value,
+        content: content.value,
+        keywords: keys
+    });
+
+    location.reload();
+};
+
+async function loadData() {
+    const snap = await getDocs(colRef);
+    let html = "<tr><th>Title</th><th>Keywords</th><th>Actions</th></tr>";
+
+    snap.forEach(docu => {
+        const d = docu.data();
+        html += `
+        <tr>
+            <td>${d.title}</td>
+            <td>${d.keywords.join(", ")}</td>
+            <td><button onclick="del('${docu.id}')">Delete</button></td>
+        </tr>`;
+    });
+
+    document.getElementById("dataTable").innerHTML = html;
+}
+
+window.del = async (id) => {
+    await deleteDoc(doc(db, "kb_articles", id));
+    location.reload();
+};
+
+loadData();
+</script>
+
+</body>
+</html>

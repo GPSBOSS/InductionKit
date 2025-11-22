@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Create Admin</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<script type="module" src="admin.js"></script>
+
+<h1>Create Admin</h1>
+
+<form id="adminForm">
+    <label>Email</label>
+    <input id="email" required>
+
+    <label>Password</label>
+    <input id="password" type="password" required>
+
+    <label>Name</label>
+    <input id="name" required>
+
+    <label>Role</label>
+    <input id="role" required value="admin">
+
+    <button type="submit">Create Admin</button>
+</form>
+
+<p id="msg"></p>
+
+<script type="module">
+import "./firestore.js";
+import {
+    createUserWithEmailAndPassword
+} from "./firestore.js";
+import { setDoc, doc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+
+adminForm.onsubmit = async (e) => {
+    e.preventDefault();
+
+    try {
+        const cred = await createUserWithEmailAndPassword(auth, email.value, password.value);
+        const uid = cred.user.uid;
+
+        await setDoc(doc(db, "admins", uid), {
+            name: name.value,
+            role: role.value,
+            createdAt: new Date()
+        });
+
+        msg.textContent = "Admin created successfully!";
+    } catch (err) {
+        msg.textContent = err.message;
+    }
+};
+</script>
+</body>
+</html>
